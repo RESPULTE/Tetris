@@ -12,7 +12,7 @@ from utils import *
 
 
 
-class Block():
+class Block:
 
       def __init__(self, x, y):
             self.x = x
