@@ -3,10 +3,14 @@ from utils import *
 # 1: find a way to state the arguements that a function takes with a pop-up
 # 2: make a 'You Lost' screen with fading text
 # 3: make a scoreboard 
-# 4: get a nice border for the playing field
-# 5: make the row of blocks turn white when its cleared
 # 6: maybe make a lil logo for the game
-# 7: implement a flood fill algorithm to the clear row function
+
+# PS: clean-up the damn scoring system function -> it's all over the place
+# PS clean-up the flood fill algorithm
+# MAIN GOAL: make the row of blocks fades to turn white when its cleared
+# ---> try to use the frame rate of the game to regulate the speed of the animation
+
+
 
 class Block:
 
@@ -37,27 +41,30 @@ class Tetris:
             self.block_positions = []
             self.accepted_position = []
             self.paused = False
+            self.level = 1
+            self.score = 0
 
       def handle_user_input(self, event):
             if event.key == pygame.K_SPACE:
                   self.paused = not self.paused
             if not self.paused:
-                  if event.key == pygame.K_RIGHT:
+                  if event.key == pygame.K_d:
                         self.block.x += 1
                         if self.check_collisions():
                               self.block.x -= 1
-                  elif event.key == pygame.K_LEFT:
+                  elif event.key == pygame.K_a:
                         self.block.x -= 1
                         if self.check_collisions():
                               self.block.x += 1
-                  elif event.key == pygame.K_UP:
+                  elif event.key == pygame.K_w:
                         self.block.rotation = (self.block.rotation + 1) % len(self.block.shape)
                         if self.check_collisions():
                               self.block.rotation = (self.block.rotation - 1) % len(self.block.shape)
-                  elif event.key == pygame.K_DOWN:
+                  elif event.key == pygame.K_s:
                         self.hard_drop()
                         if self.check_collisions():
                               self.block.y -= 1
+                              self.add_score(drop="hard_drop")
 
       def update_grid(self):
             self.block_positions = self.block.convert_to_positions()
@@ -87,48 +94,86 @@ class Tetris:
             self.block_positions = self.block.convert_to_positions()
             for (i, j) in self.block_positions:
                   self.locked_positions[(i, j)] = self.block.color
-            self.block = Block(5, 0)
+            self.block = Block(COLUMN//2, 0)
 
       def hard_drop(self):
             while set(self.block_positions).issubset(self.accepted_position):
                   self.block.y +=1
                   self.block_positions = self.block.convert_to_positions()
 
+      def add_score(self, rows_cleared=0, drop=None):
+
+            if rows_cleared:
+                  score_gained = SCORE_SYSTEM[rows_cleared]
+            if drop:
+                  score_gained = SCORE_SYSTEM[drop]
+
+            self.score += (score_gained) * self.level
+
       def check_clear_rows(self):
             rows_cleared = 0
             for j in range(ROW-1, -1, -1):
                   if BLACK not in self.grid[j]:
                         rows_cleared += 1
-                        index_of_cleared_row = j
-                        self.grid.pop(j)
+                        cleared_row_index = j
                         for i in range(COLUMN):
                               del self.locked_positions[(i, j)]
+            return rows_cleared
+            
+      def move_rows_down(self):
+            block_groups = self.calibrate_block_positions()
+            self.locked_positions.clear()
+            self.accepted_position = [(i, j) for j in range(ROW) for i in range(COLUMN) if (i, j) not in self.locked_positions]
+            for block_clump in block_groups:
+                  sorted_locked_positions = sorted(block_clump, key=lambda pos: pos[0], reverse=True)
+                  new_block_clump_bottom_pos = [max(items) for key, items in groupby(sorted_locked_positions,key = itemgetter(0))]
+                  old_block_clump_bottom_pos = new_block_clump_bottom_pos.copy()
+                  if len(self.grid)-1 not in set(map(lambda x: x[1], new_block_clump_bottom_pos)):
+                        temp_accepted_pos = [(i, j) for (i, j) in self.accepted_position for (x, y) in new_block_clump_bottom_pos if i == x]
+                        while set(new_block_clump_bottom_pos).issubset(temp_accepted_pos):
+                              new_block_clump_bottom_pos = [(i, j+1) for (i, j) in new_block_clump_bottom_pos]
+                        else:
+                              new_block_clump_bottom_pos = [(i, j-1) for (i, j) in new_block_clump_bottom_pos]
+                        offset = new_block_clump_bottom_pos[0][1] - old_block_clump_bottom_pos[0][1]
+                        block_clump = {(i, j + offset): v for (i,j), v in block_clump.items()}
+                  self.locked_positions.update(block_clump)
 
-            if rows_cleared:
-                  cleared_row = []
-                  # Need to sort the damn list first
-                  # put the damn thing in reverse 
-                  # -->or else the "smaller" Y-value that comes before will overwrite the "bigger" Y-value that comes after
-                  sorted_locked_positions = sorted(self.locked_positions, key=lambda pos: pos[-1], reverse=True)
-                  for pos in sorted_locked_positions:
-                        i, j = pos
-                        if j < index_of_cleared_row: 
-                              # Use this to change the key in a dictionary
-                              # --> pop the original key from the dictionary, 
-                              # ----> add the number of rows that has been cleared to the original key to create the new key
-                              # ------> Then, assign the value of that popped key (RBG value) to the new key
-                              # cannot change it directly with .keys() function
-                              # --> returns a runtime error ://
-                              self.locked_positions[(i, j + rows_cleared)] = self.locked_positions.pop((i, j))
+      def calibrate_block_positions(self):
+            def floodfill(matrix, j, i, block_clump):
+                #"hidden" stop clause - not reinvoking for "c" or "b", only for "a".
+                if matrix[j][i] != BLACK:  
+                    matrix[j][i] = BLACK 
+                    block_clump.append((i, j))
+                    #recursively invoke flood fill on all surrounding cells:
+                    if j > 0:
+                        floodfill(matrix,j-1,i, block_clump)
+                    if i < len(matrix[i]) - 1:
+                        floodfill(matrix,j,i+1, block_clump)
+                    if i > 0:
+                        floodfill(matrix,j,i-1, block_clump)
+                    if j < len(matrix) - 1:
+                        floodfill(matrix,j+1,i, block_clump)
 
-                  return True
+                return block_clump
+            block_groups = []
+            while self.locked_positions:
+                  block_clump = []
+                  block_dict = {}
+                  i, j = random.choice(list(self.locked_positions.keys()))
+                  detected_clump = floodfill(self.grid, j, i, block_clump)
+                  for pos in detected_clump:
+                        block_color = self.locked_positions.pop((pos))
+                        block_dict[pos] = block_color
+                  block_groups.append(block_dict)
+            return block_groups
 
       def __str__(self):
+            self.accepted_position = [(i, j) for j in range(ROW) for i in range(COLUMN) if (i, j) not in self.locked_positions]
             print('\n')
             temp_grid = ''
             for j, row in enumerate(self.grid):
                   for i, col in enumerate(row):
-                        temp_grid += '[ ]' if (i, j) in self.accepted_position else '[0]'
+                        temp_grid += '[0]' if (i, j) in self.accepted_position else '[ ]'
                   temp_grid += '\n'
             return temp_grid
 
@@ -138,6 +183,7 @@ class Render:
             self.win_width = win_width 
             self.win_height = win_height
             self.win = pygame.display.set_mode((self.win_width, self.win_height))
+            self.increment = 0
             
       def draw_field(self, grid, clear_row=False):
             if DRAW_GRID_LINES:
@@ -165,6 +211,15 @@ class Render:
                         rect = label.get_rect(center=(rect.center)) 
             self.win.blit(label, rect)
 
+      def make_block_fade_white(self, cleared_row, dt):
+            self.timer += dt
+            for (i, j) in cleared_row:
+                  rect = ((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE)) 
+                  pygame.draw.rect(self.win, WHITE, rect)
+                  if self.timer > self.animation_delay:
+                        self.timer = 0
+                        return True
+
       def draw_block(self, grid):
             for j, row in enumerate(grid):
                   for i, color in enumerate(row):
@@ -173,19 +228,20 @@ class Render:
                               pygame.draw.rect(self.win, color, rect) 
                               pygame.draw.rect(self.win, WHITE, rect, 3)
 
-      def draw_background(self, image, inc, move=True):
+      def draw_background(self, image, move=True):
+            img_width = image.get_width()
+            background_img = pygame.transform.scale(image, (img_width, self.win_height))
             if move:
-                  img_width = image.get_width()
-                  background_img = pygame.transform.scale(image, (img_width, self.win_height))
                   # spawns 2 image of the background
                   # --> one right where the screen is, the other by the 1st image's right side
-                  self.win.blit(background_img, (inc, 0))
-                  self.win.blit(background_img, (img_width + inc, 0))
+                  self.win.blit(background_img, (self.increment, 0))
+                  self.win.blit(background_img, (img_width + self.increment, 0))
                   # if the 1st image has reached the end of the screen, 
                   # spawns in the 3rd image next to the 2nd image to fill in the gap
-                  if inc == -img_width:
-                        self.win.blit(background_img, (self.win_width + inc, 0))
-                        return True
+                  if self.increment == -img_width:
+                        self.win.blit(background_img, (self.win_width + self.increment, 0))
+                        self.increment = 0
+                  self.increment -= 1
 
       def draw_pause_screen(self):
             self.draw_screen(alpha_value=125, rect=(0, 0, WIN_WIDTH, WIN_HEIGHT), color=BLACK)
@@ -254,23 +310,18 @@ def play_game():
       pygame.time.set_timer(pygame.USEREVENT, 100)
       if SOUND_CHANNEL.get_volume() != 0.0:
             pygame.mixer.music.play(-1)
-      inc = 0
       run = True
 
       while run:
-
-            inc -= 1
             
             # refresh the grid every run to clear out the place that has been overwritten by the block piece
             # i.e the places where the block piece has travelled across &  aren't in the dicitonary of locked positions
             tetris.refresh_grid()
 
-
-
             for event in pygame.event.get():
                   if event.type == pygame.QUIT:
                         run = False
-                        return run
+                        sys.exit()
 
                   if event.type == pygame.KEYDOWN:
                         tetris.handle_user_input(event)
@@ -283,6 +334,7 @@ def play_game():
                                     SOUND_CHANNEL.play(BLOCK_COLLIDE_SFX)
                                     if tetris.check_lost():
                                           run = False
+                                    tetris.add_score(drop="soft_drop")
                                     # [tetris.lock_old_spawn_new()] MUST be put inside this code block
                                     # --> This Function is responsible for updating the grid
                                     # ----> should only occur once the block has hit the ground
@@ -293,17 +345,19 @@ def play_game():
                               # if it's put in the above 'if' code block, it'll only run once a collision occurs
                               # -->since the grid hasn't been refreshed yet, it'll use the 'old' grid, 
                               #    not triggering the function until the next collision occurs
-                              if tetris.check_clear_rows():
-                                    SOUND_CHANNEL.play(CLEAR_ROW_SFX)
-            print(tetris)
-            tetris.update_grid()
-            if rendy.draw_background(BACKGROUND, inc, move=True):
-                  inc = 0
+                              if tetris.check_clear_rows()
+
+            rendy.draw_background(BACKGROUND, move=True)
             rendy.draw_screen(alpha_value=125, rect=(FIELD_X, FIELD_Y, FIELD_WIDTH, FIELD_HEIGHT), color=BLACK)
             rendy.draw_block(tetris.grid)
             rendy.draw_field(tetris.grid)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_GAME_LOGO.move(5, 5), transform=True, color=BLACK)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_GAME_LOGO, transform=True)
+                                    tetris.refresh_grid()
+                                    tetris.move_rows_down()
+                                    SOUND_CHANNEL.play(CLEAR_ROW_SFX)
+            tetris.update_grid()
+            
             if tetris.paused:
                   rendy.draw_pause_screen()
             clock.tick(GAME_FPS)
@@ -316,11 +370,8 @@ def main():
       play_button = Button(rect=PLAY_BUTTON, text='PLAY', function=play_game)
       sound_button = Button(rect=SOUND_BUTTON, image=SOUND_BUTTON_ON, clicked_image=SOUND_BUTTON_OFF, function=Button.toggle_sound)
       run = True
-      inc = 0
 
       while run:
-
-            inc -=1
 
             for event in pygame.event.get():
                   mouse_pos = pygame.mouse.get_pos()
@@ -329,8 +380,7 @@ def main():
                   play_button.handle_button(event=event, mouse_position=mouse_pos)
                   sound_button.handle_button(event=event, mouse_position=mouse_pos)
 
-            if rendy.draw_background(BACKGROUND, inc, move=True):
-                  inc = 0
+            rendy.draw_background(BACKGROUND, move=True)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_MENU_LOGO.move(5,5), transform=True, color=BLACK)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_MENU_LOGO, transform=True)
             rendy.draw_button(button=play_button)
@@ -340,4 +390,3 @@ def main():
 
 if __name__ == '__main__':
       main()
-
