@@ -12,7 +12,7 @@ from utils import *
 
 
 
-class Block:
+class Block():
 
       def __init__(self, x, y):
             self.x = x
@@ -197,12 +197,11 @@ class Render:
             self.win_height = win_height
             self.win = pygame.display.set_mode((self.win_width, self.win_height))
             self.decrement = 0
-            self.animation_delay = 300
+            self.animation_delay = 250
             self.timer = 0
 
       def draw_field(self, grid, cleared_row=[]):
             if DRAW_GRID_LINES:
-
                   for i in range(ROW+1):
                         pygame.draw.line(self.win, GREY, (FIELD_X, i * BLOCK_SIZE + FIELD_Y), (FIELD_WIDTH + FIELD_X, i * BLOCK_SIZE + FIELD_Y))
                   for j in range(COLUMN+1):
@@ -234,17 +233,22 @@ class Render:
                   for i, color in enumerate(row):
                         if color != BLACK:
                               rect = ((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE)) 
-                              pygame.draw.rect(self.win, color, rect) 
-                              pygame.draw.rect(self.win, WHITE, rect, 3)
+                              pygame.draw.rect(self.win, color, rect, border_radius=6) 
+                              pygame.draw.rect(self.win, WHITE, rect, 3, border_radius=6)
 
       def make_block_fade_white(self, cleared_row, dt):
             self.timer += dt
-            for (i, j) in cleared_row:
-                  rect = ((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE)) 
-                  pygame.draw.rect(self.win, WHITE, rect)
-                  if self.timer > self.animation_delay:
-                        self.timer = 0
-                        return True
+            counter = int(self.timer/dt)
+            if counter % 2 == 0 or counter % 3 == 0:
+                  for (i, j) in cleared_row:
+                        rect = pygame.Rect((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE))
+                        rect.inflate_ip(counter, counter)
+                        if counter < 4:
+                              pygame.draw.rect(self.win, WHITE, rect, border_radius=6)
+                        pygame.draw.rect(self.win, WHITE, rect, 3, border_radius=6)
+            if self.timer > self.animation_delay:
+                  self.timer = 0
+                  return True
 
       def draw_background(self, image):
             self.decrement -= 0.5
@@ -342,6 +346,7 @@ def play_game():
             # i.e the places where the block piece has travelled across &  aren't in the dicitonary of locked positions
             tetris.refresh_grid()
             dt = clock.get_time()
+            tetris.update_grid()
 
             for event in pygame.event.get():
                   if event.type == pygame.QUIT:
@@ -371,7 +376,6 @@ def play_game():
                               #    not triggering the function until the next collision occurs
                               cleared_row = tetris.check_clear_rows()
 
-            tetris.update_grid()
             rendy.draw_background(BACKGROUND)
             rendy.draw_screen(alpha_value=125, rect=(FIELD_X, FIELD_Y, FIELD_WIDTH, FIELD_HEIGHT), color=BLACK)
             rendy.draw_field(tetris.grid)
