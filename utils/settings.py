@@ -141,16 +141,6 @@ FPS = 25
 GAME_SPEED = pygame.USEREVENT
 pygame.time.set_timer(GAME_SPEED, 100)
 
-# scoring system
-SCORE_SYSTEM = {
-      1: 100,
-      2: 300,
-      3: 500,
-      4: 800,
-      "hard_drop": 10,
-      "soft_drop": 5
-}
-
 # SFX for the game
 pygame.mixer.music.load(os.path.join(os.getcwd(), 'utils','musics', 'Tetris.mp3'))
 CLEAR_ROW_SFX = pygame.mixer.Sound(os.path.join(os.getcwd(), 'utils','musics', 'clear.wav'))

@@ -12,13 +12,13 @@ from utils import *
 
 
 
-class Block():
+class Block:
 
       def __init__(self, x, y):
             self.x = x
             self.y = y
             self.rotation = 0
-            self.shape = I
+            self.shape = random.choice(BLOCKS)
             self.color = BLOCK_COLOR[BLOCKS.index(self.shape)]   
 
       def convert_to_positions(self):
@@ -41,8 +41,6 @@ class Tetris:
             self.block_positions = []
             self.accepted_position = []
             self.paused = False
-            self.level = 1
-            self.score = 0
 
       def handle_user_input(self, event):
             if event.key == pygame.K_SPACE:
@@ -104,22 +102,16 @@ class Tetris:
                   self.block.y +=1
                   self.block_positions = self.block.convert_to_positions()
 
-      def add_score(self, rows_cleared=0, drop=None):
-
-            if rows_cleared:
-                  score_gained = SCORE_SYSTEM[rows_cleared]
-            if drop:
-                  score_gained = SCORE_SYSTEM[drop]
-
-            self.score += (score_gained) * self.level
-
       def check_clear_rows(self):
             rows_cleared = []
             for j in range(ROW-1, -1, -1):
                   if BLACK not in self.grid[j]:
                         for i in range(COLUMN):
                               rows_cleared.append((i, j))
-                              del self.locked_positions[(i, j)]
+                              try:
+                                    del self.locked_positions[(i, j)]
+                              except:
+                                    continue
             return rows_cleared
             
       def move_rows_down(self):
@@ -323,12 +315,6 @@ class Button:
             else:
                   SOUND_CHANNEL.set_volume(0)
 
-class particle:
-
-      def __init__(self):
-            self.x = x
-            self.y = y
-
 def play_game():
 
       clock = pygame.time.Clock()
@@ -374,7 +360,7 @@ def play_game():
                               # if it's put in the above 'if' code block, it'll only run once a collision occurs
                               # -->since the grid hasn't been refreshed yet, it'll use the 'old' grid, 
                               #    not triggering the function until the next collision occurs
-                              cleared_row = tetris.check_clear_rows()
+                                    cleared_row = tetris.check_clear_rows()
 
             rendy.draw_background(BACKGROUND)
             rendy.draw_screen(alpha_value=125, rect=(FIELD_X, FIELD_Y, FIELD_WIDTH, FIELD_HEIGHT), color=BLACK)
