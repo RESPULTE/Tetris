@@ -67,7 +67,6 @@ class Tetris:
                         self.hard_drop()
                         if self.check_collisions():
                               self.block.y -= 1
-                              self.update_score_level(drop="hard_drop")
                               return True
 
       def update_grid(self):
@@ -86,7 +85,7 @@ class Tetris:
       def check_lost(self):
             self.block_positions = self.block.convert_to_positions()
             for pos in self.block_positions:
-                  if pos[1] < -1:
+                  if pos[1] <= 0:
                         return True
 
       def check_collisions(self):
@@ -103,7 +102,7 @@ class Tetris:
                   score_gained = SCORE_SYSTEM[rows_cleared] 
             if drop:
                   score_gained = SCORE_SYSTEM[drop] 
-            self.score += (score_gained * self.level)
+            self.score += (score_gained * (self.level//2))
 
             self.total_cleared_row += rows_cleared
             if self.total_cleared_row >= ROW_NEEDED_TO_LEVEL_UP:
@@ -216,19 +215,12 @@ class Render:
             self.timer = 0
 
       def draw_field(self, grid, cleared_row=[]):
-            if DRAW_GRID_LINES:
-                  for i in range(ROW+1):
-                        pygame.draw.line(self.win, GREY, (FIELD_X, i * BLOCK_SIZE + FIELD_Y), (FIELD_WIDTH + FIELD_X, i * BLOCK_SIZE + FIELD_Y))
-                  for j in range(COLUMN+1):
-                        pygame.draw.line(self.win, GREY, (j * BLOCK_SIZE + FIELD_X, FIELD_Y), (j * BLOCK_SIZE + FIELD_X, FIELD_HEIGHT + FIELD_Y))
-            # This thing below draws the border fro the playing field
-            # have put it at the end here so that the block doesn overlap it when spawning
-            pygame.draw.rect(self.win, TOMATO_RED, ((FIELD_X, FIELD_Y), (FIELD_WIDTH, FIELD_HEIGHT)), 7)
+            self.draw_screen(alpha_value=125, rect=(FIELD_X, FIELD_Y, FIELD_WIDTH, FIELD_HEIGHT), color=BLACK)
+            pygame.draw.rect(self.win, TOMATO_RED, ((FIELD_X, FIELD_Y), (FIELD_WIDTH, FIELD_HEIGHT)), 9)
 
-      def draw_text(self, text, rect, font, color=WHITE, font_size=150, placement=False, transform=False, hover=False, border=False):
+      def draw_text(self, text, rect, font, color=WHITE, font_size=150, transform=False, hover=False, border=False, border_radius=6):
             myfont = pygame.font.Font(font, font_size)
             label = myfont.render(text, 1, color)
-            # MUST be in this order, or else the label used to alter the text will not be the right one and everything fuck up
             if hover:      
                   label = myfont.render(text, False, BLACK, color)
                   label.set_colorkey(BLACK)
@@ -237,9 +229,9 @@ class Render:
                   label = pygame.transform.scale(label, (rect.width+1, rect.height))
                   text_rect = label.get_rect(x=rect.x, y=rect.y)
             if border:
-                  rect.width += 30
-                  rect.x -= 15
-                  pygame.draw.rect(self.win, color, rect, 3, border_radius = 5)
+                  rect.width += 8
+                  rect.x -= 4
+                  pygame.draw.rect(self.win, color, rect, 4, border_radius)
 
             self.win.blit(label, text_rect)
 
@@ -284,7 +276,7 @@ class Render:
       def draw_pause_screen(self):
             self.draw_screen(alpha_value=125, rect=(0, 0, WIN_WIDTH, WIN_HEIGHT), color=BLACK)
             self.draw_screen(rect=(TETRIS_MENU_LOGO.inflate(100, 20)), color=TOMATO_RED)
-            self.draw_text(text="PAUSED", rect=TETRIS_MENU_LOGO, font=RETRO_FONT, transform=True, placement="middle")
+            self.draw_text(text="PAUSED", rect=TETRIS_MENU_LOGO, font=RETRO_FONT, transform=True)
 
       def draw_screen(self, rect, color, alpha_value=255):
             x, y, width, height = rect
@@ -303,7 +295,7 @@ class Render:
                   pygame.draw.rect(self.win, button.color, new_rect)
                   self.win.blit(formatted_img, (new_x, new_y))
             if button.text != None:
-                  self.draw_text(text=button.text, rect=button.rect, font=button.font, color=button.color, hover=button.hover, placement='middle', transform=True)
+                  self.draw_text(text=button.text, rect=button.rect, font=button.font, color=button.color, hover=button.hover, transform=True)
 
 class Button:
 
@@ -359,9 +351,10 @@ def play_game():
             # refresh the grid every run to clear out the place that has been overwritten by the block piece
             # i.e the places where the block piece has travelled across &  aren't in the dicitonary of locked positions
             tetris.refresh_grid()
-            dt = clock.get_time()
             tetris.update_grid()
+            dt = clock.get_time()
 
+            # MAIN GAME LOOP
             for event in pygame.event.get():
                   if event.type == pygame.QUIT:
                         run = False
@@ -376,41 +369,31 @@ def play_game():
                               if tetris.check_collisions():
                                     delay += dt
                                     tetris.block.y -= 1
-                                    if not hard_drop:
-                                          if delay > 1.5 * dt:
-                                                SOUND_CHANNEL.play(BLOCK_COLLIDE_SFX)
-                                                if tetris.check_lost():
-                                                      pygame.mixer.music.stop()
-                                                      run = False
-                                                # [tetris.lock_old_spawn_new()] MUST be put inside this code block
-                                                # --> This Function is responsible for updating the grid
-                                                # ----> should only occur once the block has hit the ground
-                                                # ----> or else the clear_row function will be triggered while the block is still in mid-air
-                                                tetris.lock_old_spawn_new()
-                                                cleared_row = tetris.check_clear_rows()
-                                                delay = 0
-                                    else:
-                                          SOUND_CHANNEL.play(BLOCK_COLLIDE_SFX)
-                                          if tetris.check_lost():
-                                                pygame.mixer.music.stop()
-                                                run = False
-                                          tetris.lock_old_spawn_new()
-                                          cleared_row = tetris.check_clear_rows()
-                                          hard_drop = False
+                                    if tetris.check_lost():
+                                          pygame.mixer.music.stop()
+                                          run = False
+                                    tetris.lock_old_spawn_new()
+                                    cleared_row = tetris.check_clear_rows()
+                                    SOUND_CHANNEL.play(BLOCK_COLLIDE_SFX) 
 
+            # MAIN RENDERING CODE BLOCK
             rendy.draw_background(BACKGROUND)
-            rendy.draw_text(text=f"SCORE: {tetris.score}", font=RETRO_FONT, rect=SCOREBOARD, transform=True, border=True, placement='middle')
-            rendy.draw_text(text=f"LEVEL: {tetris.level}", font=RETRO_FONT, rect=LEVEL, transform=True, border=True, placement='middle')
-            rendy.draw_screen(alpha_value=125, rect=(FIELD_X, FIELD_Y, FIELD_WIDTH, FIELD_HEIGHT), color=BLACK)
-            rendy.draw_field(tetris.grid)
-            rendy.draw_block(tetris.grid)
-            if hard_drop:
-                  rendy.make_block_fade_white(tetris.block.convert_to_positions(), dt)
+            rendy.draw_text(text=f"SCORE: {tetris.score}", font=RETRO_FONT, rect=SCOREBOARD, transform=True, border=True, hover=True)
+            rendy.draw_text(text=f"LEVEL: {tetris.level}", font=RETRO_FONT, rect=LEVEL, transform=True, border=True, hover=True)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_GAME_LOGO.move(5, 5), transform=True, color=BLACK)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_GAME_LOGO, transform=True)
+            rendy.draw_field(tetris.grid)
+            rendy.draw_block(tetris.grid)
+
+            # CHECK FOR SPECIAL CONDITITIONS
+            if hard_drop:
+                  tetris.update_score_level(drop="hard_drop")
+                  rendy.make_block_fade_white(tetris.block.convert_to_positions(), dt)
+                  hard_drop = False
 
             if cleared_row:
                   SOUND_CHANNEL.play(CLEAR_ROW_SFX)
+                  # stop the game for however long the animation delay is
                   pygame.event.set_blocked([GAME_SPEED, pygame.KEYDOWN])
                   if rendy.make_block_fade_white(cleared_row, dt):
                         tetris.move_rows_down()
@@ -420,6 +403,9 @@ def play_game():
 
             if tetris.paused:
                   rendy.draw_pause_screen()
+                  pygame.mixer.music.pause()
+            else:
+                  pygame.mixer.music.unpause()
 
             clock.tick(FPS)
             pygame.display.update()

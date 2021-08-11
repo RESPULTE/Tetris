@@ -111,8 +111,6 @@ BLOCKS = [S, Z, I, O, J, L, T]
 # some default colors to use
 TOMATO_RED = pygame.Color("Tomato")
 BLACK = pygame.Color("Black")
-GREY = pygame.Color("Grey")
-BLUE = pygame.Color("Blue")
 WHITE = pygame.Color("White")
 
 COLOR_SCEHEME = { 
@@ -135,7 +133,7 @@ FIELD_HEIGHT = ROW * BLOCK_SIZE
 FIELD_X = (WIN_WIDTH - FIELD_WIDTH) // 2 
 FIELD_Y = WIN_HEIGHT - FIELD_HEIGHT - 20
 
-MIDDLE_OF_SCREEN_x = WIN_WIDTH // 2
+MIDDLE_OF_SCREEN_X = WIN_WIDTH // 2
 
 FPS = 25
 ROW_NEEDED_TO_LEVEL_UP = 5
@@ -171,10 +169,10 @@ LEVEL_SYSTEM = {
 
 # scoring system
 SCORE_SYSTEM = {
-      1: 100,
-      2: 300,
-      3: 500,
-      4: 800,
+      1: 50,
+      2: 100,
+      3: 200,
+      4: 400,
       "hard_drop": 5
 }
 
@@ -193,11 +191,6 @@ HOVER_SFX = pygame.mixer.Sound(os.path.join(os.getcwd(), 'utils','musics', 'hove
 BACKGROUND = {
       "STARRY_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'evening_background.jpg')),
       "SCENARY_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'scenary_background.jpg')),
-      "CITY_LIFE_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'hongkong_2.gif')),
-      "CITYSCAPE_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'city.gif')),
-      "JAPAN_STREET_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'japan_2.gif')),
-      "CITYSCAPE_JAPAN_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'japan.gif')),
-      "MARIO_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'mario.jpg')),
       "NIGHT_CITY_BACKGROUND": pygame.image.load(os.path.join(os.getcwd(), 'utils','images', 'night_city.gif'))
 }
 
@@ -215,7 +208,7 @@ PLAY_BUTTON_HEIGHT = 60
 PLAY_BUTTON_X = (WIN_WIDTH - PLAY_BUTTON_WIDTH)//2 
 PLAY_BUTTON_Y = 385
 PLAY_BUTTON = pygame.Rect((PLAY_BUTTON_X, PLAY_BUTTON_Y),(PLAY_BUTTON_WIDTH, PLAY_BUTTON_HEIGHT))
-PLAY_BUTTON.centerx = MIDDLE_OF_SCREEN_x
+PLAY_BUTTON.centerx = MIDDLE_OF_SCREEN_X
 
 SOUND_BUTTON_WIDTH = 50
 SOUND_BUTTON_HEIGHT = 50
@@ -228,30 +221,30 @@ TETRIS_MENU_LOGO_HEIGHT = 100
 TETRIS_MENU_LOGO_X = (WIN_WIDTH - TETRIS_MENU_LOGO_WIDTH)//2 
 TETRIS_MENU_LOGO_Y = 225
 TETRIS_MENU_LOGO = pygame.Rect((TETRIS_MENU_LOGO_X, TETRIS_MENU_LOGO_Y),(TETRIS_MENU_LOGO_WIDTH, TETRIS_MENU_LOGO_HEIGHT))
-TETRIS_MENU_LOGO.centerx = MIDDLE_OF_SCREEN_x
+TETRIS_MENU_LOGO.centerx = MIDDLE_OF_SCREEN_X
 
 TETRIS_GAME_LOGO_WIDTH = 250
 TETRIS_GAME_LOGO_HEIGHT = 80
 TETRIS_GAME_LOGO_X = (WIN_WIDTH - TETRIS_GAME_LOGO_WIDTH)//2 
 TETRIS_GAME_LOGO_Y = 10
 TETRIS_GAME_LOGO = pygame.Rect((TETRIS_GAME_LOGO_X, TETRIS_GAME_LOGO_Y),(TETRIS_GAME_LOGO_WIDTH, TETRIS_GAME_LOGO_HEIGHT))
-TETRIS_GAME_LOGO.centerx = MIDDLE_OF_SCREEN_x
+TETRIS_GAME_LOGO.centerx = MIDDLE_OF_SCREEN_X
  
 SCOREBOARD_WIDTH = 140
 SCOREBOARD_HEIGHT = 50
 SCOREBOARD_X = (WIN_WIDTH  - SCOREBOARD_WIDTH)//2 
-SCOREBOARD_Y = 160
+SCOREBOARD_Y = 250
 SCOREBOARD =  pygame.Rect((SCOREBOARD_X, SCOREBOARD_Y),(SCOREBOARD_WIDTH, SCOREBOARD_HEIGHT))
 
 LEVEL_WIDTH = 250
 LEVEL_HEIGHT = 80
 LEVEL_X = (WIN_WIDTH - LEVEL_WIDTH)//2 
-LEVEL_Y = 250
+LEVEL_Y = 160
 LEVEL = pygame.Rect((LEVEL_X, LEVEL_Y),(LEVEL_WIDTH, LEVEL_HEIGHT))
 
 DRAW_GRID_LINES = False
 BLOCK_COLOR = COLOR_SCEHEME['default']
-BACKGROUND = BACKGROUND["STARRY_BACKGROUND"]
+BACKGROUND = BACKGROUND["SCENARY_BACKGROUND"]
 SOUND_CHANNEL = pygame.mixer.Channel(0)
 SOUND_VOLUME = 0.2
 
