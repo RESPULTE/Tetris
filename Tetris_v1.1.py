@@ -18,7 +18,7 @@ class Block:
             self.x = x
             self.y = y
             self.rotation = 0
-            self.shape = L
+            self.shape = random.choice(BLOCKS)
             self.color = BLOCK_COLOR[BLOCKS.index(self.shape)]   
 
       def convert_to_positions(self):
@@ -81,12 +81,12 @@ class Tetris:
             self.grid = [[self.locked_positions[(i, j)] if (i, j) in self.locked_positions else BLACK for i in range(COLUMN)] for j in range(ROW)]
 
       def refresh_accepted_positions(self):
-            self.accepted_position = [(i, j) for j in range(-2, ROW) for i in range(COLUMN) if (i, j) not in self.locked_positions]
+            self.accepted_position = [(i, j) for j in range(-4, ROW) for i in range(COLUMN) if (i, j) not in self.locked_positions]
 
       def check_lost(self):
             self.block_positions = self.block.convert_to_positions()
             for pos in self.block_positions:
-                  if pos[1] < -1 and 0 <= pos[0] <= len(self.grid[0])-1:
+                  if pos[1] < -1:
                         return True
 
       def check_collisions(self):
@@ -408,7 +408,7 @@ def play_game():
             if cleared_row:
                   SOUND_CHANNEL.play(CLEAR_ROW_SFX)
                   pygame.event.set_blocked([GAME_SPEED, pygame.KEYDOWN])
-                  if arendy.make_block_fade_white(cleared_row, dt):
+                  if rendy.make_block_fade_white(cleared_row, dt):
                         tetris.move_rows_down()
                         tetris.update_score_level(rows_cleared=len(cleared_row)//10)
                         pygame.event.set_allowed([GAME_SPEED, pygame.KEYDOWN])
