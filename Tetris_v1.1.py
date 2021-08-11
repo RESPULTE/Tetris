@@ -211,6 +211,7 @@ class Render:
             self.win_height = win_height
             self.win = pygame.display.set_mode((self.win_width, self.win_height))
             self.decrement = 0
+            self.increment = 0
             self.animation_delay = 250
             self.timer = 0
 
@@ -254,15 +255,15 @@ class Render:
 
       def make_block_fade_white(self, block_to_fade, dt):
             self.timer += dt
-            counter = int(self.timer/dt)
-            if counter % 2 == 0 or counter % 3 == 0:
-                  for (i, j) in block_to_fade:
-                        rect = pygame.Rect((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE))
-                        rect.inflate_ip(counter, counter)
-                        if counter < 4:
-                              pygame.draw.rect(self.win, WHITE, rect, border_radius=6)
-                        pygame.draw.rect(self.win, WHITE, rect, 3, border_radius=6)
+            self.increment +=0.5
+            for (i, j) in block_to_fade:
+                  rect = pygame.Rect((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE))
+                  rect.inflate_ip(int(self.increment), int(self.increment))
+                  if self.increment <= 1.5:
+                        pygame.draw.rect(self.win, WHITE, rect, border_radius=6)
+                  pygame.draw.rect(self.win, WHITE, rect, 3, border_radius=6)
             if self.timer > self.animation_delay:
+                  self.increment = 0
                   self.timer = 0
                   return True
 
@@ -276,7 +277,7 @@ class Render:
             self.win.blit(background_img, (img_width + self.decrement, 0))
             # if the 1st image has reached the end of the screen, 
             # spawns in the 3rd image next to the 2nd image to fill in the gap
-            if self.decrement <= -img_width:
+            if self.decrement == -img_width:
                   self.win.blit(background_img, (self.win_width - self.decrement, 0))
                   self.decrement = 0
 
