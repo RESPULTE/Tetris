@@ -119,6 +119,7 @@ class Tetris:
             self.block = Block(COLUMN//2, 0)
 
       def hard_drop(self):
+            self.refresh_accepted_positions()
             while set(self.block_positions).issubset(self.accepted_position):
                   self.block.y +=1
                   self.block_positions = self.block.convert_to_positions()
@@ -251,11 +252,11 @@ class Render:
                               pygame.draw.rect(self.win, color, rect, border_radius=6) 
                               pygame.draw.rect(self.win, WHITE, rect, 3, border_radius=6)
 
-      def make_block_fade_white(self, cleared_row, dt):
+      def make_block_fade_white(self, block_to_fade, dt):
             self.timer += dt
             counter = int(self.timer/dt)
             if counter % 2 == 0 or counter % 3 == 0:
-                  for (i, j) in cleared_row:
+                  for (i, j) in block_to_fade:
                         rect = pygame.Rect((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE))
                         rect.inflate_ip(counter, counter)
                         if counter < 4:
@@ -402,6 +403,8 @@ def play_game():
             rendy.draw_screen(alpha_value=125, rect=(FIELD_X, FIELD_Y, FIELD_WIDTH, FIELD_HEIGHT), color=BLACK)
             rendy.draw_field(tetris.grid)
             rendy.draw_block(tetris.grid)
+            if hard_drop:
+                  rendy.make_block_fade_white(tetris.block.convert_to_positions(), dt)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_GAME_LOGO.move(5, 5), transform=True, color=BLACK)
             rendy.draw_text(text="TETRIS", font=TETRIS_LOGO_FONT, rect=TETRIS_GAME_LOGO, transform=True)
 
