@@ -135,14 +135,55 @@ FIELD_HEIGHT = ROW * BLOCK_SIZE
 FIELD_X = (WIN_WIDTH - FIELD_WIDTH) // 2 
 FIELD_Y = WIN_HEIGHT - FIELD_HEIGHT - 20
 
+MIDDLE_OF_SCREEN_x = WIN_WIDTH // 2
+
 FPS = 25
+ROW_NEEDED_TO_LEVEL_UP = 5
+
+# Level System
+LEVEL_SYSTEM = {
+      1: 500,
+      2: 475,
+      3: 450,
+      4: 425,
+      5: 400,
+      6: 375,
+      7: 350,
+      8: 325,
+      9: 300,
+      10: 275,
+      11: 275,
+      12: 225,
+      13: 225,
+      14: 175,
+      15: 175,
+      16: 150,
+      17: 150,
+      18: 125,
+      20: 125,
+      20: 100,
+      21: 90,
+      22: 80,
+      23: 70,
+      24: 60,
+      25: 50,
+}
+
+# scoring system
+SCORE_SYSTEM = {
+      1: 100,
+      2: 300,
+      3: 500,
+      4: 800,
+      "hard_drop": 5
+}
 
 # timer for events in th game
 GAME_SPEED = pygame.USEREVENT
-pygame.time.set_timer(GAME_SPEED, 100)
 
 # SFX for the game
 pygame.mixer.music.load(os.path.join(os.getcwd(), 'utils','musics', 'Tetris.mp3'))
+pygame.mixer.music.set_volume(0.1)
 CLEAR_ROW_SFX = pygame.mixer.Sound(os.path.join(os.getcwd(), 'utils','musics', 'clear.wav'))
 BLOCK_COLLIDE_SFX = pygame.mixer.Sound(os.path.join(os.getcwd(), 'utils','musics', 'fall.wav'))
 CLICK_SFX = pygame.mixer.Sound(os.path.join(os.getcwd(), 'utils','musics', 'selection.wav'))
@@ -174,6 +215,7 @@ PLAY_BUTTON_HEIGHT = 60
 PLAY_BUTTON_X = (WIN_WIDTH - PLAY_BUTTON_WIDTH)//2 
 PLAY_BUTTON_Y = 385
 PLAY_BUTTON = pygame.Rect((PLAY_BUTTON_X, PLAY_BUTTON_Y),(PLAY_BUTTON_WIDTH, PLAY_BUTTON_HEIGHT))
+PLAY_BUTTON.centerx = MIDDLE_OF_SCREEN_x
 
 SOUND_BUTTON_WIDTH = 50
 SOUND_BUTTON_HEIGHT = 50
@@ -183,19 +225,34 @@ SOUND_BUTTON = pygame.Rect((SOUND_BUTTON_X, SOUND_BUTTON_Y),(SOUND_BUTTON_WIDTH,
 
 TETRIS_MENU_LOGO_WIDTH = 350
 TETRIS_MENU_LOGO_HEIGHT = 100
-TETRIS_MENU_LOGO_X = (WIN_WIDTH - TETRIS_MENU_LOGO_WIDTH)//2 + 5
+TETRIS_MENU_LOGO_X = (WIN_WIDTH - TETRIS_MENU_LOGO_WIDTH)//2 
 TETRIS_MENU_LOGO_Y = 225
 TETRIS_MENU_LOGO = pygame.Rect((TETRIS_MENU_LOGO_X, TETRIS_MENU_LOGO_Y),(TETRIS_MENU_LOGO_WIDTH, TETRIS_MENU_LOGO_HEIGHT))
+TETRIS_MENU_LOGO.centerx = MIDDLE_OF_SCREEN_x
 
 TETRIS_GAME_LOGO_WIDTH = 250
 TETRIS_GAME_LOGO_HEIGHT = 80
-TETRIS_GAME_LOGO_X = (WIN_WIDTH - TETRIS_GAME_LOGO_WIDTH)//2
+TETRIS_GAME_LOGO_X = (WIN_WIDTH - TETRIS_GAME_LOGO_WIDTH)//2 
 TETRIS_GAME_LOGO_Y = 10
 TETRIS_GAME_LOGO = pygame.Rect((TETRIS_GAME_LOGO_X, TETRIS_GAME_LOGO_Y),(TETRIS_GAME_LOGO_WIDTH, TETRIS_GAME_LOGO_HEIGHT))
+TETRIS_GAME_LOGO.centerx = MIDDLE_OF_SCREEN_x
+ 
+SCOREBOARD_WIDTH = 140
+SCOREBOARD_HEIGHT = 50
+SCOREBOARD_X = (WIN_WIDTH  - SCOREBOARD_WIDTH)//2 
+SCOREBOARD_Y = 160
+SCOREBOARD =  pygame.Rect((SCOREBOARD_X, SCOREBOARD_Y),(SCOREBOARD_WIDTH, SCOREBOARD_HEIGHT))
+
+LEVEL_WIDTH = 250
+LEVEL_HEIGHT = 80
+LEVEL_X = (WIN_WIDTH - LEVEL_WIDTH)//2 
+LEVEL_Y = 250
+LEVEL = pygame.Rect((LEVEL_X, LEVEL_Y),(LEVEL_WIDTH, LEVEL_HEIGHT))
 
 DRAW_GRID_LINES = False
-GAME_SOUND = True
 BLOCK_COLOR = COLOR_SCEHEME['default']
 BACKGROUND = BACKGROUND["STARRY_BACKGROUND"]
 SOUND_CHANNEL = pygame.mixer.Channel(0)
+SOUND_VOLUME = 0.2
+
 
