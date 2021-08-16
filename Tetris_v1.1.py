@@ -1,16 +1,4 @@
 from utils import *
-# TO-DO LIST: 
-# 1: find a way to state the arguements that a function takes with a pop-up
-# 2: make a 'You Lost' screen with fading text
-# 3: make a scoreboard 
-# 6: maybe make a lil logo for the game
-
-# PS: clean-up the damn scoring system function -> it's all over the place
-# PS clean-up the flood fill algorithm
-# MAIN GOAL: make the row of blocks fades to turn white when its cleared
-# ---> try to use the frame rate of the game to regulate the speed of the animation
-
-
 
 class Block:
 
@@ -247,11 +235,11 @@ class Render:
 
       def make_block_fade_white(self, block_to_fade, dt):
             self.timer += dt
-            self.increment +=0.5
+            self.increment +=1.7
             for (i, j) in block_to_fade:
                   rect = pygame.Rect((i * BLOCK_SIZE + FIELD_X, j * BLOCK_SIZE + FIELD_Y), (BLOCK_SIZE, BLOCK_SIZE))
                   rect.inflate_ip(int(self.increment), int(self.increment))
-                  if self.increment <= 1.5:
+                  if self.increment <= 4:
                         pygame.draw.rect(self.win, WHITE, rect, border_radius=6)
                   pygame.draw.rect(self.win, WHITE, rect, 3, border_radius=6)
             if self.timer > self.animation_delay:
@@ -387,9 +375,11 @@ def play_game():
 
             # CHECK FOR SPECIAL CONDITITIONS
             if hard_drop:
+                  pygame.event.set_blocked([GAME_SPEED, pygame.KEYDOWN])
                   tetris.update_score_level(drop="hard_drop")
-                  rendy.make_block_fade_white(tetris.block.convert_to_positions(), dt)
-                  hard_drop = False
+                  if rendy.make_block_fade_white(tetris.block.convert_to_positions(), dt):
+                        pygame.event.set_allowed([GAME_SPEED, pygame.KEYDOWN])
+                        hard_drop = False
 
             if cleared_row:
                   SOUND_CHANNEL.play(CLEAR_ROW_SFX)
